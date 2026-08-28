@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Default rule: Deny everything unless explicitly allowed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Requests (Victim Relief Requests)
+    // Anyone authenticated can create a request.
+    // Anyone authenticated can read requests (Volunteers need to see them to respond).
+    match /requests/{requestId} {
+      allow create: if isAuth();
+      allow read: if isAuth();
+      // Updates/Deletes restricted to admins or specific roles in future iterations
+      allow update, delete: if false;
+    }
+
+    // Volunteers (Convoys/Volunteers Registration)
+    // Authenticated users can register as a volunteer.
+    // They can read all volunteers (for transparency and coordination).
+    match /volunteers/{volunteerId} {
+      allow create: if isAuth() && request.auth.uid == volunteerId;
+      allow read: if isAuth();
+      allow update: if isAuth() && request.auth.uid == volunteerId; // Can update their own profile
+      allow delete: if false;
+    }
+
+    // Missions (Assignments AI to Volunteer)
+    match /missions/{missionId} {
+      allow create: if isAuth(); // AI or cloud function usually creates this, but for client simulation we allow it
+      allow read: if isAuth();
+      allow update, delete: if false;
+    }
+  }
+}
