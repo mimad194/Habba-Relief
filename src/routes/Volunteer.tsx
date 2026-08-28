@@ -15,10 +15,18 @@ export default function Volunteer() {
  const handleFormSubmit = async (data: VolunteerFormState) => {
   setIsProcessing(true)
   
-  // Save to Firestore in the background (Offline-First architecture)
-  // We do NOT await this. If the user is offline, or Firestore is slow,
-  // the promise hangs. By not awaiting, the UI feels instant and Firebase syncs later.
-  registerVolunteer(data).catch(console.error)
+  try {
+    // 1. Force server sync with a timeout (10 seconds)
+    // We use Promise.race to prevent infinite hanging if Firestore database isn't initialized
+    const syncPromise = registerVolunteer(data)
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 10000))
+    
+    await Promise.race([syncPromise, timeoutPromise])
+  } catch (error) {
+    alert('تعذر الاتصال بالخوادم المركزية! يرجى التأكد من اتصالك بالإنترنت وتفعيل قاعدة البيانات.')
+    setIsProcessing(false)
+    return
+  }
 
   // SIMPLIFIED MATCHMAKING:
   // For this version, just pick the highest severity request in the same wilaya (simulated)
