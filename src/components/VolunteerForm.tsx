@@ -196,7 +196,7 @@ export default function VolunteerForm({ onSubmitForm }: Props) {
 
           <button
             type="button"
-            disabled={!form.lat}
+            disabled={!form.lat || !user}
             onClick={() => setStep(2)}
             className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >

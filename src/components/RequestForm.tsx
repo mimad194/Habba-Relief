@@ -215,7 +215,7 @@ export default function RequestForm() {
 
           <button
             type="button"
-            disabled={!step1.lat || !step1.wilayaCode || !step1.communeId}
+            disabled={!step1.lat || !step1.wilayaCode || !step1.communeId || !user}
             onClick={() => setStep(2)}
             className="w-full flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 font-bold text-white hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
