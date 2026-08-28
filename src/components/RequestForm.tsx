@@ -89,12 +89,14 @@ export default function RequestForm() {
     }
     
     console.log('FINAL REQUEST TO FIREBASE:', finalRequest)
-    const result = await submitReliefRequest(finalRequest)
-    if (result.success) {
-      setSubmitted(true)
-    } else {
-      alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.')
-    }
+    
+    // Fire and forget (Offline-first approach)
+    // Firebase local cache will save it instantly, and sync when internet is available.
+    // We don't await because if offline, the promise hangs until online.
+    submitReliefRequest(finalRequest).catch(console.error)
+    
+    // Instantly show success UI
+    setSubmitted(true)
   }
 
   if (submitted) {
