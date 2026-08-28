@@ -16,23 +16,23 @@ export default function Volunteer() {
  // Save to Firestore
  await registerVolunteer(data)
 
- // SIMULATE AI MATCHMAKING
- // Filter by resource type if possible, or just pick the most critical one.
- // Let's simplify: 
- // - Human (Medical) -> NeedType 'طبي'
- // - Material -> NeedType 'إجلاء' (or anything)
- // - Logistic -> NeedType 'معدات/إطفاء'
- let targetNeed = ''
- if (data.category.includes('بشرية')) targetNeed = 'طبي'
- else if (data.category.includes('لوجستية')) targetNeed = 'معدات/إطفاء'
- else targetNeed = 'إجلاء'
+  // SIMULATE AI MATCHMAKING
+  let targetNeed: ReliefRequest['needType'] = 'إجلاء'
+  
+  if (data.inventory) {
+    const hasMedical = data.inventory.some(item => item.id.startsWith('med-'))
+    const hasLogistics = data.inventory.some(item => item.id.startsWith('log-'))
+    
+    if (hasMedical) targetNeed = 'طبي'
+    else if (hasLogistics) targetNeed = 'معدات/إطفاء'
+  }
 
- const match = mockRequests.find(req => req.needType === targetNeed) || mockRequests[0]
- 
- setTimeout(() => {
- setAssignedMission(match)
- }, 800) // fake processing delay
- }
+  const match = mockRequests.find(req => req.needType === targetNeed) || mockRequests[0]
+  
+  setTimeout(() => {
+    setAssignedMission(match)
+  }, 800) // fake processing delay
+  }
 
  const handleAccept = () => {
  alert('تم قبول المهمة! سيتم توجيهك الآن عبر GPS وسيتم إخطار المتضررين بقدومك.')
