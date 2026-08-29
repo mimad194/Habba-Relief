@@ -1,5 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import { Flame, ShieldAlert, HeartHandshake, Home } from 'lucide-react'
+import { Analytics } from '@vercel/analytics/react'
 import Dashboard from './routes/Dashboard'
 import VictimRequest from './routes/VictimRequest'
 import Volunteer from './routes/Volunteer'
@@ -57,6 +58,8 @@ export default function App() {
       <footer className="mt-auto border-t border-white/5 py-6 text-center text-xs text-slate-500">
         <p>© {new Date().getFullYear()} هَبّة. جميع الحقوق محفوظة لـ <span className="font-bold text-slate-400 tracking-widest">M.I.E</span></p>
       </footer>
+
+      <Analytics />
     </div>
   )
 }

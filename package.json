@@ -9,6 +9,7 @@
   "preview": "vite preview"
  },
  "dependencies": {
+  "@vercel/analytics": "^2.0.1",
   "firebase": "^12.18.0",
   "geoalgeria": "^2.0.0",
   "leaflet": "^1.9.4",
