@@ -4,10 +4,6 @@ export type RouteData = {
   durationStr: string
 }
 
-/**
- * Decodes a Google-format encoded polyline string into [lat, lng] coordinates.
- * OSRM returns polylines in the same encoded format.
- */
 function decodePolyline(encoded: string): [number, number][] {
   const poly: [number, number][] = []
   let index = 0, len = encoded.length
@@ -35,53 +31,46 @@ function decodePolyline(encoded: string): [number, number][] {
   return poly
 }
 
-function formatDuration(seconds: number): string {
-  if (seconds < 3600) {
-    return `${Math.round(seconds / 60)} دقيقة`
-  }
-  const h = Math.floor(seconds / 3600)
-  const m = Math.round((seconds % 3600) / 60)
-  return `${h} ساعة ${m > 0 ? `و ${m} دقيقة` : ''}`
-}
-
-function formatDistance(meters: number): string {
-  if (meters < 1000) return `${Math.round(meters)} م`
-  return `${(meters / 1000).toFixed(1)} كم`
-}
-
 /**
- * Fetches real driving directions using OSRM (Open Source Routing Machine).
- * 100% free, no API key required, powered by OpenStreetMap.
- * Great coverage of Algeria and North Africa.
+ * Fetches real driving directions via our Vercel serverless proxy (/api/directions).
+ * The proxy calls Google Maps Directions API server-side:
+ *   - No CORS issues
+ *   - API key stays hidden on the server
+ *   - Works on slow mobile networks (single lightweight request)
  */
 export async function getDirections(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number }
 ): Promise<RouteData | null> {
-  // OSRM public demo server — for production, consider self-hosting
-  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=polyline`
-
   try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`OSRM HTTP error: ${res.status}`)
-    
+    const url = `/api/directions?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}`
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 12000) // 12s timeout
+
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+
+    if (!res.ok) throw new Error(`Proxy HTTP error: ${res.status}`)
+
     const data = await res.json()
 
-    if (data.code === 'Ok' && data.routes.length > 0) {
+    if (data.status === 'OK' && data.routes?.length > 0) {
       const route = data.routes[0]
-      const path = decodePolyline(route.geometry)
+      const leg = route.legs[0]
+      const path = decodePolyline(route.overview_polyline.points)
 
       return {
         path,
-        distanceKm: formatDistance(route.distance),
-        durationStr: formatDuration(route.duration),
+        distanceKm: leg.distance.text,
+        durationStr: leg.duration.text,
       }
     } else {
-      console.error('OSRM error:', data.code, data.message)
+      console.warn('Directions API returned:', data.status)
       return null
     }
   } catch (error) {
-    console.error('Failed to fetch directions from OSRM:', error)
+    console.error('Directions fetch failed:', error)
     return null
   }
 }
