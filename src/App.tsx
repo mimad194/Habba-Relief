@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import { Flame, ShieldAlert, HeartHandshake, Home } from 'lucide-react'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import Dashboard from './routes/Dashboard'
 import VictimRequest from './routes/VictimRequest'
 import Volunteer from './routes/Volunteer'
@@ -60,6 +61,7 @@ export default function App() {
       </footer>
 
       <Analytics />
+      <SpeedInsights />
     </div>
   )
 }
